@@ -15,7 +15,6 @@
       margin: 10px;
       width: 80%;
       border-radius: 12px;
-      cursor: pointer;
     }
     input {
       padding: 10px;
@@ -27,23 +26,10 @@
       margin-top: 20px;
       font-weight: bold;
     }
-    #identityButtons button {
-      width: auto;
-      padding: 10px 15px;
-      margin: 5px 5px;
-      border-radius: 8px;
-      font-size: 16px;
-      background-color: #f0f0f0;
-      border: 1px solid #ccc;
-    }
   </style>
 </head>
 <body>
   <h2>🏷️ Identity Tracker</h2>
-
-  <!-- Container for saved identities buttons -->
-  <div id="identityButtons" style="margin-bottom: 15px;"></div>
-
   <input type="text" id="identityInput" placeholder="Enter identity (e.g. weight_loser)">
   <br>
   <button onclick="sendVote(+1)">✅ Good Vote</button>
@@ -51,7 +37,8 @@
   <p id="status">Waiting for input...</p>
 
   <script>
-    const scriptURL = "https://script.google.com/macros/s/AKfycbyrRtK9Hlb5SwilXB5VvH5DzrzENOYq8lcVRgunkmbR37B0RrYpcbWIqcwXDDmMedY/exec";
+    // ⬇️ Replace this with your actual web app URL from "Deploy > Manage deployments"
+    const scriptURL = "https://script.google.com/macros/s/REPLACE_WITH_YOUR_SCRIPT_ID/exec";
 
     async function sendVote(vote) {
       const identity = document.getElementById("identityInput").value.trim();
@@ -60,25 +47,18 @@
         return;
       }
 
-      saveIdentity(identity);  // Save identity locally when voting
-
-      const data = {
+      const params = new URLSearchParams({
         identity,
         vote,
-        action: "vote",
         device: navigator.platform,
         userAgent: navigator.userAgent,
         timezone: Intl.DateTimeFormat().resolvedOptions().timeZone
-      };
+      });
 
       try {
-        const res = await fetch(scriptURL, {
-          method: "POST",
-          body: JSON.stringify(data),
-          headers: { "Content-Type": "application/json" }
-        });
+        const res = await fetch(`${scriptURL}?${params.toString()}`);
         const result = await res.json();
-        document.getElementById("status").textContent = 
+        document.getElementById("status").textContent =
           vote > 0 ? "🎉 Positive vote recorded!" : "💢 Negative vote recorded!";
         playSound(vote);
       } catch (err) {
@@ -87,42 +67,11 @@
     }
 
     function playSound(vote) {
-      const audio = new Audio(vote > 0 
+      const audio = new Audio(vote > 0
         ? "https://actions.google.com/sounds/v1/cartoon/clang_and_wobble.ogg"
         : "https://actions.google.com/sounds/v1/cartoon/cartoon_boing.ogg");
       audio.play();
     }
-
-    // Save identity to localStorage (avoid duplicates)
-    function saveIdentity(identity) {
-      let saved = JSON.parse(localStorage.getItem("savedIdentities") || "[]");
-      if (!saved.includes(identity)) {
-        saved.push(identity);
-        localStorage.setItem("savedIdentities", JSON.stringify(saved));
-        renderIdentityButtons();
-      }
-    }
-
-    // Render buttons for saved identities for quick selection
-    function renderIdentityButtons() {
-      const container = document.getElementById("identityButtons");
-      container.innerHTML = "";
-      let saved = JSON.parse(localStorage.getItem("savedIdentities") || "[]");
-      saved.forEach(id => {
-        const btn = document.createElement("button");
-        btn.textContent = id;
-        btn.onclick = () => {
-          document.getElementById("identityInput").value = id;
-          document.getElementById("status").textContent = `Using saved identity: ${id}`;
-        };
-        container.appendChild(btn);
-      });
-    }
-
-    // Render saved identities buttons on page load
-    window.onload = () => {
-      renderIdentityButtons();
-    };
   </script>
 </body>
 </html>
