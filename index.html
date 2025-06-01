@@ -1,0 +1,82 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Identity Tracker</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      text-align: center;
+      padding: 40px;
+    }
+    button {
+      font-size: 20px;
+      padding: 20px;
+      margin: 10px;
+      width: 80%;
+      border-radius: 12px;
+    }
+    input {
+      padding: 10px;
+      font-size: 16px;
+      width: 80%;
+      margin-bottom: 20px;
+    }
+    #status {
+      margin-top: 20px;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+  <h2>🏷️ Identity Tracker</h2>
+  <input type="text" id="identityInput" placeholder="Enter identity (e.g. weight_loser)">
+  <br>
+  <button onclick="sendVote(+1)">✅ Good Vote</button>
+  <button onclick="sendVote(-1)">❌ Bad Vote</button>
+  <p id="status">Waiting for input...</p>
+
+  <script>
+    const scriptURL = "PASTE_YOUR_WEB_APP_URL_HERE";
+
+    async function sendVote(vote) {
+      const identity = document.getElementById("identityInput").value.trim();
+      if (!identity) {
+        document.getElementById("status").textContent = "⚠️ Please enter an identity first.";
+        return;
+      }
+
+      const data = {
+        identity,
+        vote,
+        action: "vote",
+        device: navigator.platform,
+        userAgent: navigator.userAgent,
+        timezone: Intl.DateTimeFormat().resolvedOptions().timeZone
+      };
+
+      try {
+        const res = await fetch(scriptURL, {
+          method: "POST",
+          body: JSON.stringify(data),
+          headers: { "Content-Type": "application/json" }
+        });
+        const result = await res.json();
+        document.getElementById("status").textContent = 
+          vote > 0 ? "🎉 Positive vote recorded!" : "💢 Negative vote recorded!";
+        playSound(vote);
+      } catch (err) {
+        document.getElementById("status").textContent = "❌ Error sending vote.";
+      }
+    }
+
+    function playSound(vote) {
+      const audio = new Audio(vote > 0 
+        ? "https://actions.google.com/sounds/v1/cartoon/clang_and_wobble.ogg"
+        : "https://actions.google.com/sounds/v1/cartoon/cartoon_boing.ogg");
+      audio.play();
+    }
+  </script>
+</body>
+</html>
