@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -38,6 +37,7 @@
   <p id="status">Waiting for input...</p>
 
   <script>
+    // ⬇️ Replace this with your actual web app URL from "Deploy > Manage deployments"
     const scriptURL = "https://script.google.com/macros/s/AKfycbyrRtK9Hlb5SwilXB5VvH5DzrzENOYq8lcVRgunkmbR37B0RrYpcbWIqcwXDDmMedY/exec";
 
     async function sendVote(vote) {
@@ -47,23 +47,18 @@
         return;
       }
 
-      const data = {
+      const params = new URLSearchParams({
         identity,
         vote,
-        action: "vote",
         device: navigator.platform,
         userAgent: navigator.userAgent,
         timezone: Intl.DateTimeFormat().resolvedOptions().timeZone
-      };
+      });
 
       try {
-        const res = await fetch(scriptURL, {
-          method: "POST",
-          body: JSON.stringify(data),
-          headers: { "Content-Type": "application/json" }
-        });
+        const res = await fetch(`${scriptURL}?${params.toString()}`);
         const result = await res.json();
-        document.getElementById("status").textContent = 
+        document.getElementById("status").textContent =
           vote > 0 ? "🎉 Positive vote recorded!" : "💢 Negative vote recorded!";
         playSound(vote);
       } catch (err) {
@@ -72,7 +67,7 @@
     }
 
     function playSound(vote) {
-      const audio = new Audio(vote > 0 
+      const audio = new Audio(vote > 0
         ? "https://actions.google.com/sounds/v1/cartoon/clang_and_wobble.ogg"
         : "https://actions.google.com/sounds/v1/cartoon/cartoon_boing.ogg");
       audio.play();
